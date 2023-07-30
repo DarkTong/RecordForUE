@@ -1,0 +1,123 @@
+@startuml
+
+class UWorldPartition
+{
+    + ActorDescContainer: TObjectPtr<UActorDescContainer>
+    + RuntimeHash: TObjectPtr<UWorldPartitionRuntimeHash>
+}
+
+class UWorldPartitionRuntimeHash
+{
+
+}
+
+class UWorldPartitionRuntimeCell
+
+class UWorldPartitionRuntimeSpatialHash
+{
+    // 区域信息
+    - Grids: TArray<FSpatialHashRuntimeGrid> 
+
+    - StreamingGrids: TArray<FSpatialHashStreamingGrid>
+}
+
+struct FSpatialHashStreamingGrid
+{
+    + GridLevels: TArray<FSpatialHashStreamingGridLevel>
+}
+
+struct FSpatialHashStreamingGridLevel
+{
+    + LayerCells: TArray<FSpatialHashStreamingGridLayerCell>
+}
+
+struct FSpatialHashStreamingGridLayerCell
+{
+    + GridCells: TArray<TObjectPtr<UWorldPartitionRuntimeCell>>
+}
+
+class UWorldPartitionRuntimeCellData
+{
+    + ContentBounds: FBox
+}
+
+class UWorldPartitionRuntimeCellDataSpatialHash
+{
+}
+
+class UWorldPartitionRuntimeLevelStreamingCell
+{
+    + Load()
+    + UnLoad()
+    - LevelStreaming: TObjectPtr<UWorldPartitionLevelStreamingDynamic>
+
+    // 【编辑器数据】包信息
+    - Packages: TArray<FWorldPartitionRuntimeCellObjectMapping>
+}
+
+class UWorldPartitionLevelStreamingDynamic
+{
+    + Load()
+    + UnLoad()
+
+    // 【编辑器】从包的数据中初始化数据
+    + Initialize()
+    // 【编辑器数据】
+    - RuntimeLevel: TObjectPtr<ULevel>
+}
+
+UWorldPartition <-right- UWorldPartitionRuntimeHash
+/'UWorldPartitionRuntimeHash <-right- UWorldPartitionRuntimeCell'/
+UWorldPartitionRuntimeCell <-right- UWorldPartitionRuntimeCellData
+
+
+UWorldPartitionRuntimeHash <|-down- UWorldPartitionRuntimeSpatialHash
+UWorldPartitionRuntimeHash <|-down- UWorldPartitionRuntimeHashSet
+UWorldPartitionRuntimeCell <|-down- UWorldPartitionRuntimeLevelStreamingCell
+UWorldPartitionRuntimeCellData <|-down- UWorldPartitionRuntimeCellDataSpatialHash
+
+UWorldPartitionRuntimeSpatialHash <-down- FSpatialHashStreamingGrid
+FSpatialHashStreamingGrid <-right- FSpatialHashStreamingGridLevel
+FSpatialHashStreamingGridLevel <-right- FSpatialHashStreamingGridLayerCell
+FSpatialHashStreamingGridLayerCell <-right- UWorldPartitionRuntimeCell
+
+
+ULevelStreamng <|-down- ULevelStreamingDynamic
+ULevelStreamng <|-down- ULevelStreamingAlwaysLoad
+ULevelStreamng <|-down- ULevelStreamingPersistent
+
+ULevelStreamingDynamic <|-down- UWorldPartitionLevelStreamingDynamic
+ULevelStreamingDynamic <|-down- ULevelStreamingLevelInstance
+
+UWorldPartitionRuntimeLevelStreamingCell <-down- UWorldPartitionLevelStreamingDynamic
+
+
+struct FSquare2DGridHelper
+{
+    + WorldBounds: FBox
+    + Levels: TArray<FGridLevel>
+}
+struct FGrid2D
+struct FGridLevel
+{
+    + Level: uint32
+    + Cells: TArray<FGridCell>
+}
+struct FGridCell
+{
+    + Coords: FGridCellCoord
+    + DataChunks: TSet<FGridCellDataChunk>
+}
+struct FGridCellDataChunk
+{
+    + ActorSetInstances: TArray<const FActorSetInstance*>
+    + DataLayers: TArray<const UDataLayerInstance*>
+}
+
+FSquare2DGridHelper <-right- FGrid2D
+FGrid2D <|-down- FGridLevel
+FGridLevel <-right- FGridCell
+FGridCell <-right- FGridCellDataChunk
+
+
+@enduml
